@@ -69,7 +69,7 @@ COUNT DW 5,'$'
 DATAS ENDS
 
 STACKS SEGMENT USE16
-     DB 200 DUP(0);�˴������ջ�δ���
+     DB 200 DUP(0);此处输入堆栈段代码
 STACKS ENDS
 
 CODES SEGMENT  USE16
@@ -79,9 +79,9 @@ START:
     MOV  DS,Ax
     
 CHANGESTN MACRO BUFS,RES      
-    MOV  AH,BUFS                    ;�궨�彫BUFS����Ӧ���ֽڱ���������ַ�
-    SUB  AH,30H                     ;ת��Ϊʮ�������������ν�����������RES
-    MOV  AL,BUFS+1                  ;�ֽڱ�������Ӧ���ֵ�Ԫ��
+    MOV  AH,BUFS                    ;宏定义将BUFS所对应的字节变量里面的字符
+    SUB  AH,30H                     ;转换为十进制数，并依次将所得数加在RES
+    MOV  AL,BUFS+1                  ;字节变量所对应的字单元中
     SUB  AL,30H
     XOR  DX,DX
     MOV  DL,AH
@@ -91,8 +91,8 @@ CHANGESTN MACRO BUFS,RES
     ADD  RES,DX
     ENDM    
     
-CHANGENTS MACRO BUFS,RES            ;�궨�彫��BUFSΪƫ�Ƶ�ַ�������ֽڵ�Ԫ
-    XOR  AX,AX                      ;��ʾ��ʮ������ת��Ϊ�ַ�
+CHANGENTS MACRO BUFS,RES            ;宏定义将以BUFS为偏移地址的两个字节单元
+    XOR  AX,AX                      ;表示的十进制数转换为字符
     MOV  AX,BUFS
     MOV  DL,10
     DIV  DL
@@ -108,28 +108,28 @@ CHANGENTS MACRO BUFS,RES            ;�궨�彫��BUFSΪƫ�Ƶ�ַ�������ֽڵ�Ԫ
     
    
    
-    LEA  DX,BUF                     ;��ʾϵͳ�ײ�����
+    LEA  DX,BUF                     ;显示系统首部界面
     MOV  AH,9                     
     INT  21H
     
     
 
 
-CALCULATESUM:                       ;��������ѧ���ɼ��ܺ�
+CALCULATESUM:                       ;计算所有学生成绩总和
     MOV  DI,0
     LEA  BX,BUF1 
 ALLSTUDENT:  
-    MOV  [BX+65],WORD PTR 0         ;��SUMΪ0
+    MOV  [BX+65],WORD PTR 0         ;置SUM为0
     MOV  SI,0
-    MOV  CX,COUNT                   ;COUNTΪ��Ŀ��
+    MOV  CX,COUNT                   ;COUNT为科目数
 ASTUDENT:
     CHANGESTN  [BX+SI+9],[BX+65]
     ADD  SI,8
     LOOP ASTUDENT
     MOV  SI,DI
     MOV  AX,2
-    IMUL SI,AX                      ;������ܷ�����������RESULT��
-    MOV  AX,[BX+65]                 ;��������ʱʹ��
+    IMUL SI,AX                      ;将算得总分依次另存在RESULT中
+    MOV  AX,[BX+65]                 ;便于排名时使用
     MOV  RESULT[SI],AX  
     CHANGENTS  [BX+65],[BX+65]
     INC  DI
@@ -142,10 +142,10 @@ ASTUDENT:
 
 
 
-                                    ;��������
-RANKING:                            ;�����ȵݼ���������ʼʱ��DXΪ26������
-    LEA  BX,BUF1                    ;�ֵܷ��ڸ�ѧ���ģ�DX-1,�����������һ����
-    MOV  SI,-2                      ;ֱ������26��ѧ��
+                                    ;计算排名
+RANKING:                            ;逐个相比递减排名，开始时置DX为26，若有
+    LEA  BX,BUF1                    ;总分低于该学生的，DX-1,否则继续比下一个，
+    MOV  SI,-2                      ;直至比完26个学生
 LOOPL:
     ADD  SI,2
     MOV  AX,RESULT[SI]
@@ -176,23 +176,23 @@ LOOPK:
     
 
 
-MAIN:                                     ;��ʾ������ѡ��
+MAIN:                                     ;显示命令行选项
     LEA  DX,MAINSHOW          
     MOV  AH,9                      
     INT  21H
-    LEA  DX,CHOICESHOW                    ;10������ѡ������
+    LEA  DX,CHOICESHOW                    ;10号输入选择命令
     MOV  AH,10
     INT  21H
-    CMP  CHOICESHOW+2,'A'                 ;������ΪA��ִ������һ���¿�Ŀ�ɼ�
+    CMP  CHOICESHOW+2,'A'                 ;若输入为A，执行添加一门新科目成绩
     JZ   ADDSCORE        
-    CMP  CHOICESHOW+2,'S'                 ;������ΪS��ִ����ʾ����ѧ���ɼ�
+    CMP  CHOICESHOW+2,'S'                 ;若输入为S，执行显示所有学生成绩
     JZ   SHOWALL
-    CMP  CHOICESHOW+2,'F'                 ;������ΪF��ִ�а�ѧ�Ų�ѯѧ���ɼ� 
+    CMP  CHOICESHOW+2,'F'                 ;若输入为F，执行按学号查询学生成绩 
     JZ   FINDID
-    CMP  CHOICESHOW+2,'E'                 ;������ΪE���˳�ϵͳ����������
+    CMP  CHOICESHOW+2,'E'                 ;若输入为E，退出系统，结束运行
     JZ   OUTEXIT
-    JMP  INVALID                          ;�����벻Ϊ����4�֣���ʾ�������Ϸ�
-INVALID:                                  ;����������
+    JMP  INVALID                          ;若输入不为以上4种，显示操作不合法
+INVALID:                                  ;请重新输入
     LEA  DX,ENTERSHOW
     MOV  AH,9
     INT  21H
@@ -204,27 +204,28 @@ INVALID:                                  ;����������
 
 
 
-ADDSCORE:                                 ;ִ������һ���¿�Ŀ�ɼ�
+ADDSCORE:                                 ;执行添加一门新科目成绩
     CALL ADDS
     JMP  CALCULATESUM
 
-SHOWALL:                                  ;ִ����ʾ����ѧ���ɼ�
+SHOWALL:                                  ;执行显示所有学生成绩
     CALL SHOW                             
     JMP  MAIN
 
-FINDID:                                   ;ִ�а�ѧ�Ų�ѯѧ���ɼ� 
+FINDID:                                   ;执行按学号查询学生成绩 
     CALL FIND
     JMP  MAIN
     
-OUTEXIT:                                  ;�˳�ϵͳ����������
+OUTEXIT:                                  ;退出系统，结束运行
     MOV  AH,4CH
     INT  21H
     
 
 
 
-ADDS PROC                                 ;���ӿ�Ŀ��26��ѧ���ɼ����ӳ���
+ADDS PROC                                 ;添加科目及26个学生成绩的子程序
     PUSH CX
+    PUSH SI
     PUSH DI
     PUSH AX
     PUSH BX
@@ -308,7 +309,7 @@ ADDS ENDP
 
 
 
-SHOW PROC                           ;��ʾ����ѧ���ɼ����ӳ���
+SHOW PROC                           ;显示所有学生成绩的子程序
     PUSH SI
     PUSH CX
     LEA  DX,ENTERSHOW
@@ -334,7 +335,7 @@ SHOW ENDP
 
 
 
-FIND PROC                         ;��ѧ�Ų���ѧ���ӳ���
+FIND PROC                         ;按学号查找学生子程序
     PUSH AX
     PUSH BX
     PUSH SI
