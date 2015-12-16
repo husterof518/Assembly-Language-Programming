@@ -52,7 +52,7 @@ ID  DB 4
     DB 4 DUP(0),0AH,0DH,'$'
     
 NOTEXIST DB "THIS STUDENT DOESN'T EXIST.PLEASE INPUT BETWEEN 01 ~~ 26."
-         DB "AND B FOR BACK TO MIAN",0DH,0AH,'$'
+         DB "AND B FOR BACK TO MAIN",0DH,0AH,'$'
 INVALIDSHOW DB "INVALID OPERATION.PLEASE CHOOSE A OR F OR S OR E",0DH,0AH,'$'
 RESULT DW 28 DUP(0)
 NEWSUBJECT DB "PLEASE INPUT NEW SUBJECT'S NAME:",'$'
@@ -225,6 +225,7 @@ OUTEXIT:                                  ;退出系统，结束运行
 
 ADDS PROC                                 ;添加科目及26个学生成绩的子程序
     PUSH CX
+	PUSH SI
     PUSH DI
     PUSH AX
     PUSH BX
